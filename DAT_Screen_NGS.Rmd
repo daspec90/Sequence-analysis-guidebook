@@ -1,0 +1,58 @@
+---
+title: "DAT Screen Next Generation Sequencing"
+author: "Dave Speca"
+date: "5/31/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+| Sequence | File Size | Number of reads | Source     |
+| :------: | :-------: | :-------------: | :----:     |
+| Chr2R1   | 14 Gb     | 42,117,483      | Tail       |
+| Chr2R2   | 14 Gb     | 42,117,483      | Tail       |
+| Chr16R1  | 14 Gb     | 41,324,213      | Tail (low) |
+| Chr16R2  | 14 Gb     | 41,324,213      | Tail (low) |
+| Chr18R1  | 15 Gb     | 45,940,146      | Tail       |
+| Chr18R2  | 15 Gb     | 45,940,146      | Tail       |
+| D2R1     | 15 Gb     | 44,904,397      | Liver      | 
+| D2R2     | 15 Gb     | 44,904,397      | Liver      |
+
+##DNA sequence analysis pipeline:
+* Download using Globus
+* gunzip files
+* make alias:  `ln -s long_file_name.fastq shorter_name.fastq`
+* count lines in file: `wc -l shorter_name.fastq`
+* calculate the % of one mismatch barcodes in each file
+
+N.B. the number of lines divided by four was equal to the reported total number of reads for all downloaded files. For Chr16, it was ~4%; all others it was ~3%
+
+###Fastqc
+* subset a smaller set of sequence data for fastqc analysis: `awk 'NR >250000 {exit} NR >=1 && NR <=250000' shorter_name.fastq > small.fastq`
+* to determine the size of an individual file type: `du -h filename`
+
+Note that the maximum attachment size for Gmail is 25 Mb. These file sizes are ~21 Mb.
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
