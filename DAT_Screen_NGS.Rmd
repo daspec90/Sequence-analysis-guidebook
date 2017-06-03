@@ -34,7 +34,56 @@ N.B. the number of lines divided by four was equal to the reported total number 
 * to determine the size of an individual file type: `du -h filename`
 
 Note that the maximum attachment size for Gmail is 25 Mb. These file sizes are ~21 Mb.
+Note that `du`, which stands for "disk usage" will report a different file size than `ls`.
 
+The fastqc reports looked very similar, indicating reads of high quality. The following items were flagged:
+1. "per base sequence content" at the very end of the reads. UCLA looked at the report and explained that this was because A's were trimmed in the process of removing adapter sequences. Illumina libraries use an A-tailing technique. Removal of A's near the end of the sequence is a conservative approach. No need for further processing.
+2. "Kmer content" at the beginning of the sequence. Not a problem either. This is also a consequence of how Illumina libraries are made. There is a random priming step, but the annealling of the primers is not random. But UCLA said that this should not be a problem.
+
+###Injury prevention
+
+Illumina Reads 1 and 2 are arranged in the same order. Downstream alignment software that pairs these reads makes this assumption. Therefore, care must be taken to prune the sequence(s) of both files in the same way. To prevent screwups, Julin recommended that I write-protect the original fastq files using `chmod u-w filename.fastq`, which is what I did.
+
+###Homebrew and bwa installation
+
+I installed Homebrew (a Mac package manager) using this command:
+
+`/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+then, to install bwa:
+
+`brew tap homebrew/science`
+`brew install bwa`
+`bwa` # this brought up the reference manual, indicating proper installation.
+
+###Download mouse reference sequence
+
+`brew install wget`
+
+`wget http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/chromFa.tar.gz`
+
+During the download, data transfer stopped completely for some reason. Instead of starting over, I did this:
+
+Press `control` + `c` to stop the process and then added -c to the above command:
+
+`wget -c http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/chromFa.tar.gz`
+
+This seemed to pick up where things left off, I hope.
+
+This tarball came as a file of individual chromosomes. We need to unzip them, concatenate them, and then get rid of the individual chromosome files:
+
+`tar zvfx chromFa.tar.gz`
+`cat *.fa > mm10.fa`
+`rm chr*.fa`
+
+###bwa
+
+Make index:
+`bwa index mm10.fa`
+
+This took about 45 minutes to run.
+
+`bwa mem -t 4 mm10.fa DBAR1.fastq DBAR2.fastq > DBA.sam`
 
 
 ## R Markdown
