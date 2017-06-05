@@ -9,16 +9,16 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-| Sequence | File Size | Number of reads | Source     |
-| :------: | :-------: | :-------------: | :----:     |
-| Chr2R1   | 14 Gb     | 42,117,483      | Tail       |
-| Chr2R2   | 14 Gb     | 42,117,483      | Tail       |
+| Sequence | Compressed | File Size | Number of reads | Source     | bam   |
+| :------: | :--------: | :-------: | :-------------: | :----:     | :---: |
+| Chr2R1   |            |  14 Gb    | 42,117,483      | Tail       | 33 Gb |
+| Chr2R2   |            |  14 Gb    | 42,117,483      | Tail       |       |
 | Chr16R1  | 14 Gb     | 41,324,213      | Tail (low) |
 | Chr16R2  | 14 Gb     | 41,324,213      | Tail (low) |
 | Chr18R1  | 15 Gb     | 45,940,146      | Tail       |
 | Chr18R2  | 15 Gb     | 45,940,146      | Tail       |
-| D2R1     | 15 Gb     | 44,904,397      | Liver      | 
-| D2R2     | 15 Gb     | 44,904,397      | Liver      |
+| D2R1     | 3.3 Gb    | 15 Gb     | 44,904,397      | Liver      | 35 Gb |
+| D2R2     | 3.5 Gb    | 15 Gb     | 44,904,397      | Liver      |       |
 
 ##DNA sequence analysis pipeline:
 * Download using Globus
@@ -81,27 +81,21 @@ This tarball came as a file of individual chromosomes. We need to unzip them, co
 Make index:
 `bwa index mm10.fa`
 
-This took about 45 minutes to run.
+Indexing took about 45 minutes to run.
 
 `bwa mem -t 4 mm10.fa DBAR1.fastq DBAR2.fastq > DBA.sam`
 
+Aligning took about 90 minutes to run, using -t 4 (cores), which consumed about 50% of the available CPU (although it was running at ~400%).
 
-## R Markdown
+###samtools
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+`brew install samtools`
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Convert .sam to .bam:
+`samtools view -S -b DBA.sam > DBA.bam`
 
-```{r cars}
-summary(cars)
-```
+Converting to .bam took ~30 minutes
 
-## Including Plots
+Sort .bam:
+`samtools sort DBA.bam -o DBA.sort.bam`
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
