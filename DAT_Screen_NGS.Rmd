@@ -99,3 +99,87 @@ Converting to .bam took ~30 minutes
 Sort .bam:
 `samtools sort DBA.bam -o DBA.sort.bam`
 
+Sorting took ~30 minutes.
+
+Create index file:
+`samtools index DBA.sort.bam`
+
+Making index took ~10 minutes.
+
+
+###Chromosome 2-specific information:
+The critical region is defined by the markers D2Mit156 and D2Mit379
+D2Mit156L primer: ACTGGGGAGACTAAATGGGG (mm10 chr2:57081653)
+D2Mit379R primer: ACCCTAACTTGCACTCTGAAGG (mm10 chr2:68092852)
+
+Subset DBA.sort.bam file:
+(count lines first)
+`samtools view DBA.sort.bam chr2:57081653-68092852 | wc -l`
+457128
+`samtools view Chr2.sort.bam chr2:57081653-68092852 | wc -l`
+449619
+
+### Subset sample for testing
+
+`samtools view DBA.sort.bam chr2:57081653-68092852 > DBA.sort.chr2.test.bam`
+`wc -l DBA.sort.chr2.test.bam`
+457128 (same as wc -l above). Note that this did not include '-bh' (b=bam file, h=include header)
+`samtools view -bh DBA.sort.bam chr2:57081653-68092852 > DBA.sort.chr2.bam`
+`wc -l DBA.sort.chr2.bam`
+106742
+
+###Add Read Groups
+
+`brew update`
+`brew install cmake`
+`cd /usr/local/bin`
+`ls` # Hey, there's lots of stuff in there!
+`git clone --recursive https://github.com/ekg/bamaddrg.git`
+`cd bamaddrg`
+`make`
+
+Note that during this install, there were hundreds of warnings such as:
+"/Users/Dave/bamaddrg/bamaddrg/bamtools/src/api/BamWriter.h:19:1: warning: class
+      'BamAlignment' was previously declared as a struct [-Wmismatched-tags]""
+
+Because the executable file (bamaddrg) was located in the /usr/local/bin/bamaddrg directory, I need to set an extra path:
+
+`vi $HOME/.bash_profile`
+`export PATH=$PATH:/usr/local/bin/bamaddrg`
+Hit the `ESC` key. Type ":" (a colon). Type "x" and hit return to save file and close vi editor.
+`source $HOME/.bash_profile`
+`echo $PATH`
+
+Result:
+/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin/bamaddrg
+This looks like I added the extra and correct path!
+
+`samtools view DBA.sort.chr2.bam | head`
+
+Result:
+J00153:114:HJT2YBBXX:5:1222:14225:39858	163	chr2	57081688	60	41M22D109M	=	57081751	210	TAAGAATAACTAAATCCTGAATATGAAATACAAAATTTGGTTGTGTGTGTGTGTGTGTGTGTGTGTGTGTAATCGGTTGCATGGAAGAGTAGCAGTGTTCATTGGCTTTTTGAACACCTGATGTAAAGTTCAGTTTAAGAAGAAAACCCT	AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJFJJJJJJFFJFJ<A<7<A<AJJFJJFJA77AJFJJJ<AAF<<<FFJJJJJFJJJJFAFFJJJJFAA<AA-<FFF7FFFFFFJ<AFAJF	NM:i:22	MD:Z:41^TGTGTGTGTGTGTGTGTGTGTG109	AS:i:122	XS:i:37
+
+Now add Read Groups:
+
+`bamaddrg -b DBA.sort.chr2.bam -s DBA -r DBA > DBA.sort.chr2.RG.bam` 
+`samtools view DBA.sort.chr2.RG.bam | head`
+
+Result:
+J00153:114:HJT2YBBXX:5:1222:14225:39858	163	chr2	57081688	60	41M22D109M	=	57081751	210	TAAGAATAACTAAATCCTGAATATGAAATACAAAATTTGGTTGTGTGTGTGTGTGTGTGTGTGTGTGTGTAATCGGTTGCATGGAAGAGTAGCAGTGTTCATTGGCTTTTTGAACACCTGATGTAAAGTTCAGTTTAAGAAGAAAACCCT	AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJFJJJJJJFFJFJ<A<7<A<AJJFJJFJA77AJFJJJ<AAF<<<FFJJJJJFJJJJFAFFJJJJFAA<AA-<FFF7FFFFFFJ<AFAJF	NM:i:22	MD:Z:41^TGTGTGTGTGTGTGTGTGTGTG109	AS:i:122	XS:i:37	RG:Z:DBA
+
+###Concatenate and index the two subsetted files:
+`bamaddrg -b DBA.sort.chr2.bam -s DBA -r DBA \ bamaddrg -b Chr2.sort.chr2.bam -s Chr2 -r Chr2 > Chr2.test.bam`
+`samtools index Chr2.test.bam`
+
+###Use freebayes to make .vcf file
+`freebayes -f mm10.fa Chr2.test.bam > Chr2.test.vcf`
+Note that there was no index for mm10, so freebayes made it: mm10.fai
+
+###Use R to look at the vcf file!
+
+
+###Questions:
+1. File management and how to prevent creation of files during each step of the process.
+2. Related to above, how to create a pipeline. RAM issues for running a pipeline.
+3. I was confused about the format for the Read Group.
+4. How to access statistics about coverage, number of unaligned reads, etc.?
