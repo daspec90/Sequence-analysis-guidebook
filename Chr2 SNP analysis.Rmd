@@ -1,0 +1,130 @@
+---
+title: "Chr2 SNP Analysis"
+author: "Dave Speca"
+date: "6/6/2017"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+###Read in the vcf file and add headers:
+
+```{r, cache=TRUE}
+# read in .vcf file
+Chr2.data <- read.table("Chr2.test.vcf", as.is=TRUE, na.strings=".")
+vcf.header <- system("grep '#C' Chr2.test.vcf",intern = TRUE)
+vcf.header <- sub("#","",vcf.header) #get rid of the pound sign
+vcf.header <- unlist(strsplit(vcf.header,split="\t"))
+colnames(Chr2.data) <- vcf.header
+head(Chr2.data)
+```
+
+###String split data
+
+```{r}
+# Before splitting add NAs to blank cells
+
+Chr2.data$DBA[is.na(Chr2.data$DBA)] <- "NA:NA:NA:NA:NA:NA:NA:NA"
+
+DBA.tmp <- matrix(
+  unlist(strsplit(Chr2.data$DBA,split = ":")),
+  nrow=nrow(Chr2.data),
+  byrow=TRUE
+  )
+head(DBA.tmp)
+colnames(DBA.tmp) <- paste("DBA",c("gt","tot.depth","NObsAllele", "ref.depth","ref.qual","alt.depth","alt.qual","gen.lik"),sep="_")
+
+Chr2.data$Chr2[is.na(Chr2.data$Chr2)] <- "NA:NA:NA:NA:NA:NA:NA:NA"
+
+Chr2.tmp <- matrix(
+  unlist(strsplit(Chr2.data$Chr2,split = ":")),
+  nrow=nrow(Chr2.data),
+  byrow=TRUE
+  )
+head(Chr2.tmp)
+colnames(Chr2.tmp) <- paste("Chr2",c("gt","tot.depth","NObsAllele", "ref.depth","ref.qual","alt.depth","alt.qual","gen.lik"),sep="_")
+
+Chr2.data <- cbind(Chr2.data,DBA.tmp,Chr2.tmp,stringsAsFactors=FALSE)
+summary(Chr2.data)
+```
+
+
+###Convert columns back to numeric:
+```{r}
+Chr2.data[,c("DBA_tot.depth","DBA_ref.depth","DBA_ref.qual","DBA_alt.depth","DBA_alt.qual",
+            "Chr2_tot.depth","Chr2_ref.depth","Chr2_ref.qual","Chr2_alt.depth","Chr2_alt.qual")] <- 
+  apply(Chr2.data[,c("DBA_tot.depth","DBA_ref.depth","DBA_ref.qual","DBA_alt.depth","DBA_alt.qual",
+            "Chr2_tot.depth","Chr2_ref.depth","Chr2_ref.qual","Chr2_alt.depth","Chr2_alt.qual")],
+        2,
+        as.numeric
+        )
+head(Chr2.data, 6)
+```
+
+###Exploratory analysis:
+
+####Sequencing depth: DBA, raw
+```{r}
+qplot(Chr2.data$DBA_tot.depth, geom="histogram")
+```
+
+####Sequencing depth: DBA, focused
+```{r}
+qplot(Chr2.data$DBA_tot.depth, geom="histogram", xlim=c(20, 100))
+```
+
+####Sequencing depth: Chr2, focused
+
+```{r}
+qplot(Chr2.data$Chr2_tot.depth, geom="histogram", xlim=c(20, 100))
+```
+
+###Scatterplot of DBA and Chr2 sequencing depths (DP)
+
+```{r}
+plot1 <- ggplot(Chr2.data, aes(DBA_tot.depth, Chr2_tot.depth))
+plot1 + geom_point() + xlim(20, 600) + ylim(20, 600)
+```
+###Pretty linear. Good.
+
+###Histogram of QUAL scores:
+
+```{r}
+# histogram of low scores
+plot2 <- ggplot(Chr2.data, aes(QUAL)) + geom_histogram()
+plot2
+```
+###Well, that's something. Let's try again.
+
+```{r}
+# histogram of low scores
+plot3 <- ggplot(Chr2.data, aes(QUAL)) + geom_histogram() + xlim(-1, 300)
+plot3
+```
+
+###Kinda weird that there is a spike at QUAL ~ 60.
+
+###Subset Chr2.data QUAL > 40
+
+```{r}
+# subset data keeping only SNPs with quality scores greater than or equal to 40
+Chr2.Q40.data <- subset(Chr2.data, QUAL >= 40)
+```
+
+###Replot scatterplot of read depths on Q40 dataset:
+
+```{r}
+plot4 <- ggplot(Chr2.Q40.data, aes(DBA_tot.depth, Chr2_tot.depth))
+plot4 + geom_point() + xlim(20, 600) + ylim(20, 600)
+```
+
+###Let's make a table!
+
+```{r}
+# count the numbers common and unique to each genotype
+ftable(vcf.data.good[,c("IMB211_gt","R500_gt")])
+```
+
