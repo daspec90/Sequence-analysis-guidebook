@@ -86,9 +86,9 @@ qplot(Chr2.data$Chr2_tot.depth, geom="histogram", xlim=c(20, 100))
 
 ```{r}
 plot1 <- ggplot(Chr2.data, aes(DBA_tot.depth, Chr2_tot.depth))
-plot1 + geom_point() + xlim(20, 600) + ylim(20, 600)
+plot1 + geom_point() + xlim(0,40) + ylim(0,40)
 ```
-###Pretty linear. Good.
+###Pretty linear, which is good, although the correlation falls apart below 10 reads.
 
 ###Histogram of QUAL scores:
 
@@ -125,6 +125,41 @@ plot4 + geom_point() + xlim(20, 600) + ylim(20, 600)
 
 ```{r}
 # count the numbers common and unique to each genotype
-ftable(vcf.data.good[,c("IMB211_gt","R500_gt")])
+ftable(Chr2.Q40.data[,c("DBA_gt","Chr2_gt")])
+```
+
+###Legend: 0=reference allele; 1=first alt. allele; 2=second alt. allele; 3=third alt.allele. Therefore, 0/1=a conventional heterozygote.
+
+###The first thing to look at would be DBA-->0/0 (wild type) and Chr2-->1/1 (homozygous mutant)
+
+###Subset DBA_gt ==0/0 & Chr2_gt==1/1
+
+```{r}
+Chr2.0011.data <- subset(Chr2.Q40.data, (DBA_gt=="0/0" & Chr2_gt == "1/1"))
+```
+
+###Make it a little more user-friendly
+```{r}
+library(dplyr)
+Chr2.0011.tidy.data <-select(Chr2.0011.data, -ID, -FILTER, -INFO, -FORMAT, -DBA, -Chr2)
+```
+###I took a quick look at these. Nothing looked promising, unfortunately.
+###On the upside, the genome coordinates are in line with UCSC mm10. Good job, Dave!
+
+
+```{r}
+Chr2.1122.tidy.data <- subset(Chr2.Q40.data, Chr2_gt =="2/2")
+```
+###These are garbage.
+
+```{r}
+#Subset DBA_gt=="0/0" & Chr2_gt=="0/1"
+Chr2.0001.data <- subset(Chr2.Q40.data, (DBA_gt=="0/0" & Chr2_gt == "0/1"))
+```
+###Garbage.
+
+###Let's look at what should be well-covered coding SNPs(?)
+```{r}
+Chr2.1111.data <- subset(Chr2.Q40.data, (DBA_gt=="1/1" & Chr2_gt == "1/1"))
 ```
 

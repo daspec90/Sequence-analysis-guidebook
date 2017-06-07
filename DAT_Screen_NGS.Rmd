@@ -176,7 +176,8 @@ J00153:114:HJT2YBBXX:5:1222:14225:39858	163	chr2	57081688	60	41M22D109M	=	570817
 Note that there was no index for mm10, so freebayes made it: mm10.fai
 
 ###Use R to look at the vcf file!
-
+system("grep '##INFO' Chr2.test.vcf")
+system("grep '##FORMAT' Chr2.test.vcf")
 
 ###Questions:
 1. File management and how to prevent creation of files during each step of the process.
