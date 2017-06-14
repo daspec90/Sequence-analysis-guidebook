@@ -32,3 +32,18 @@ output: html_document
 `samtools view -b DBA.sort.bam chr16 > DBA.sort.chr16.bam`
 *Time: ~ 5 minutes*
 
+####Add Read Group and concatenate the two subsetted files
+`bamaddrg -b DBA.sort.chr18.bam -s DBA -r DBA \ bamaddrg -b Chr18.sort.chr18.bam -s Chr18 -r Chr18 > Chr18.all.bam`
+`bamaddrg -b DBA.sort.chr16.bam -s DBA -r DBA \ bamaddrg -b Chr16.sort.chr16.bam -s Chr16 -r Chr16 > Chr16.all.bam`
+*Time: ~3 minutes*
+
+###Index Chr18.all.bam
+`samtools index Chr18.all.bam`
+`samtools index Chr16.all.bam`
+*Time: ~1 minute*
+
+####Use freebayes to make .vcf file
+`freebayes -f mm10.fa Chr18.all.bam > Chr18.all.vcf`
+`freebayes -f mm10.fa Chr16.all.bam > Chr16.all.vcf`
+*Note that this took about 10 minutes and produced a file that is ~20 Mb*
+
