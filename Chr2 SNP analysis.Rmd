@@ -10,7 +10,7 @@ library(ggplot2)
 library(dplyr)
 ```
 
-###Read in the vcf file and add headers:
+###Read in the vcf file and add headers of Chr2.test.vcf:
 
 ```{r, cache=TRUE}
 # read in .vcf file
@@ -167,5 +167,54 @@ Chr2.1111.data <- subset(Chr2.Q40.data, (DBA_gt=="1/1" & Chr2_gt == "1/1"))
 ###Take a flyer:
 ```{r}
 Chr2.1100.data <- subset(Chr2.Q40.data, (DBA_gt=="1/1" & Chr2_gt == "0/0"))
+```
+
+##No convincing mutation found in critical region in between D2Mit156 and D2Mit379.
+
+##Analyze all of chromosome 2 for a coding mutation
+
+```{r}
+# read in .vcf file for all of chromosome 2
+Chr2.data <- read.table("Chr2.all.vcf", as.is=TRUE, na.strings=".")
+vcf.header <- system("grep '#C' Chr2.all.vcf",intern = TRUE)
+vcf.header <- sub("#","",vcf.header) #get rid of the pound sign
+vcf.header <- unlist(strsplit(vcf.header,split="\t"))
+colnames(Chr2.data) <- vcf.header
+head(Chr2.data)
+```
+
+###Return to top and continue to process Chr2.data starting with String split...
+
+###After that is done, make a new table:
+
+```{r}
+# count the numbers common and unique to each genotype
+ftable(Chr2.Q40.data[,c("DBA_gt","Chr2_gt")])
+```
+
+
+###Plot Chr2 congenic-specific SNPs (Chr2_gt==1/1) to define introgressed region
+
+```{r}
+library(ggplot2)
+###subset Chr2_gt=="1/1"
+Chr2.XX11.data <- subset(Chr2.Q40.data, Chr2_gt=="1/1")
+###plot these SNPs using total depth on y-axis and position on x-axis
+plot.snps <- ggplot(Chr2.XX11.data , aes(x=POS, y=Chr2_tot.depth)) + geom_point(size = 0.5) + ylim(0,600) + xlim(5.0e+7, 8.0e+7)
+plot.snps
+```
+
+###This looks reasonable. It looks like the introgressed region is safely in between 50.0 Mb and 75.0 Mb.
+
+###Subset DBA_gt ==0/0 & Chr2_gt==1/1
+```{r}
+Chr2.0011.data <- subset(Chr2.Q40.data, (DBA_gt=="0/0" & Chr2_gt == "1/1"))
+```
+
+###Make it a little more user-friendly
+
+```{r}
+library(dplyr)
+Chr2.0011.tidy.data <-select(Chr2.0011.data, -ID, -FILTER, -INFO, -FORMAT, -DBA, -Chr2)
 ```
 
