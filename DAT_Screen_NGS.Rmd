@@ -104,7 +104,7 @@ Sorting took ~30 minutes.
 Create index file:
 `samtools index DBA.sort.bam`
 
-Making index took ~10 minutes.
+Making index took ~10 minutes. This creates a .bai file (I think)
 
 
 ###Chromosome 2-specific information:
@@ -178,6 +178,30 @@ Note that there was no index for mm10, so freebayes made it: mm10.fai
 ###Use R to look at the vcf file!
 system("grep '##INFO' Chr2.test.vcf")
 system("grep '##FORMAT' Chr2.test.vcf")
+
+###By the way, the Integrated Genomics Viewer (IGV) is amazing!
+
+###Follow up: no mutations found in region chr2:57081653-68092852. Analyze all of chr2 instead
+
+####Subset
+`samtools view -b DBA.sort.bam chr2 > DBA.sort.chr2.bam`
+`samtools view -b Chr2.sort.bam chr2 > Chr2.sort.chr2.bam`
+*Note that I included -b (bam file) in this command, which was not included the first time.
+*This took only several minutes to subset*
+**Approximate file size: 500Mb**
+
+####Add Read Group and concatenate the two subsetted files
+`bamaddrg -b DBA.sort.chr2.bam -s DBA -r DBA \ bamaddrg -b Chr2.sort.chr2.bam -s Chr2 -r Chr2 > Chr2.all.bam`
+*This only took a few minutes. As expected, the combined file size was about 1 GB*
+
+####Index Chr2.all.bam
+`samtools index Chr2.all.bam`
+
+####Use freebayes to make .vcf file
+`freebayes -f mm10.fa Chr2.all.bam > Chr2.all.vcf`
+*Note that this took about 15 minutes and produced a file that is ~50 Mb*
+*Move the .vcf file to the Sequence_analysis_notebook to process further in R*
+
 
 ###Questions:
 1. File management and how to prevent creation of files during each step of the process.

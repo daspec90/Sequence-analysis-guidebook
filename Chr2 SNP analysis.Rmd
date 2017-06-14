@@ -162,4 +162,10 @@ Chr2.0001.data <- subset(Chr2.Q40.data, (DBA_gt=="0/0" & Chr2_gt == "0/1"))
 ```{r}
 Chr2.1111.data <- subset(Chr2.Q40.data, (DBA_gt=="1/1" & Chr2_gt == "1/1"))
 ```
+###There are certainly more well-covered regions that are at least near exons in  this subset.
+
+###Take a flyer:
+```{r}
+Chr2.1100.data <- subset(Chr2.Q40.data, (DBA_gt=="1/1" & Chr2_gt == "0/0"))
+```
 
