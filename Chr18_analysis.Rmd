@@ -1,0 +1,34 @@
+---
+title: "Chromosome 18 analysis"
+author: "Dave Speca"
+date: "6/14/2017"
+output: html_document
+---
+
+###bwa
+
+`bwa mem -t 4 mm10.fa Chr18R1.fastq Chr18R2.fastq > Chr18.sam`
+*Time: ~90 minutes*
+
+###Convert .sam to .bam
+
+`samtools view -S -b Chr18.sam > Chr18.bam`
+*Time: ~30 minutes*
+
+###Sort .bam file
+
+`samtools sort Chr18.bam -o Chr18.sort.bam`
+*Time: ~30 minutes*
+
+###Create index file (not sure if this is necessary now, but think better safe than sorry.)
+
+`samtools index Chr18.sort.bam`
+*Time: ~10 minutes*
+
+###Subset by chromosome
+`samtools view -b Chr18.sort.bam chr18 > Chr18.sort.chr18.bam`
+`samtools view -b Chr16.sort.bam chr16 > Chr16.sort.chr16.bam`
+`samtools view -b DBA.sort.bam chr18 > DBA.sort.chr18.bam`
+`samtools view -b DBA.sort.bam chr16 > DBA.sort.chr16.bam`
+*Time: ~ 5 minutes*
+
